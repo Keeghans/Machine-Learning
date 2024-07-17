@@ -1,0 +1,132 @@
+# Spell Checker
+                                              # This section is the import section, here you are going to import the necessary libraries containing the functions that are going to be used 					      ##in the program.
+                                              # These libraries will allow the use of functions that are not built-in in Python, this means that you are able to use functions that you have 					      ##not written yourself.
+import zipfile                                # This allows for handling ZIP files.
+import os                                     # This allows for interacting with the operating system.
+import csv                                    # This allows you to read and write CSV files.
+import re                                     # (Regular Expression) This allows for the use of regular expressions for text processing and manipulation.
+import nltk                                   # Natural Language Toolkit, a library for text processing.
+from nltk.corpus import reuters               # This is a corpus of Reuters news articles, used for training and testing text classifiers in NLTK.
+from nltk.util import ngrams                  # This is going to be used to generate n-grams from text data.
+from collections import Counter, defaultdict  # This allows for counting the frequency of elements in a list and creating a dictionary with default values.
+
+nltk.download('reuters') # This line downloads the Reuters corpus from NLTK.
+nltk.download('punkt')   # This line downloads the Punkt tokenizer model from NLTK. This tokenizer divides a text into a list of sentences.
+
+# Constants for paths, adjust as necessary
+                                                                              # This section is the constant section, here we define the paths to the ZIP file containing the word list and 									      ##the path to where we are going to extract the word list to.
+ZIP_PATH = r"C:\Users\Aeslyn\Desktop\Spell_check\Words for Spell Checker.zip" # This is the path to the ZIP file containing the word list.
+EXTRACT_TO = r'C:\Users\Aeslyn\Desktop\Spell_check'                           # This is the path to where we are going to export the corrected word list to.
+
+# Function to load the word list from a zipfile
+                                                                                                            # This function initializes a set to store words extracted from text files 														    ##within a ZIP archive.
+def load_word_list():                                                                                       # This function is called a function, it is a block of code that only runs when 												            ##it is called. It is used to perform a specific task.
+                                                                                                            # This specific function is called Load_word_list, it is used to load a word list from a ZIP file.
+    words_set = set()                                                                                       # This line initializes a set called words_set, a set is a collection of unique 													    ##elements.
+    try:                                                                                                    # This line starts a try block, this block is used to catch exceptions that may 													    ##occur during the execution of the code.
+        with zipfile.ZipFile(ZIP_PATH, 'r') as zip_ref:                                                     # This line opens the ZIP file in read mode and assigns it to the variable 														    ##zip_ref.
+            zip_ref.extractall(EXTRACT_TO)                                                                  # This line extracts all the contents of the ZIP file to the directory specified 													    ##in the EXTRACT_TO constant set in line 20.
+            for root, _, files in os.walk(EXTRACT_TO):                                                      # This line uses the os.walk function to walk through the directory specified in 													    ##the EXTRACT_TO constant. This is how the file paths are navigated.
+                for file in files:                                                                          # This line starts a for loop this means the code inside the loop will run for 													    ##each file in the files list.
+                    if file.endswith('.txt'):                                                               # This line checks if the file ends with the .txt extension.
+                        with open(os.path.join(root, file), 'r', encoding='utf-8', errors='replace') as f:  # this line opens the file in read mode and assigns it to the variable f.
+                            words_set.update(line.strip().lower() for line in f)                            # This line is just stripping the lines of any loose spaces and converting the 													    ##words to lowercase before adding them to the words_set.
+        print("Zip file not found.")                                                                        # This line puts a message in the console saying "Zip file not found."
+    except zipfile.BadZipFile:                                                                              # This line catches the exception BadZipFile, this exception is raised when a 													    ##ZIP file is corrupt or not a valid ZIP file.
+        print("Bad zip file.")                                                                              # This line puts a message in the console and it says "Bad zip file."
+    return words_set                                                                                        # This is the end of the function, it returns the words_set set containing the 													    ##words extracted from the ZIP file.
+
+# Function to handle user input or file input
+                                                                                          # This is the function called get_user_input, it is used to get the user input for the text that 										          ##is going to be spell checked.
+def get_user_input():                                                                     # Here we define the function get_user_input.
+    while True:                                                                           # This line starts a while loop, this loop will run until it runs into a statement that breaks the 											  ##loop because the condition is no longer true.
+        choice = input("Enter text directly (1) or use a file (2)? ").strip()             # This line asks the person running the program to enter text directly or use a file.
+        if choice == '1':                                                                 # This line checks if the choice is equal to 1.
+            text = input("Enter your text: ")                                             # This line asks the person running the program to enter the text that is going to be spell 												  ##checked.
+            return parse_text(text)                                                       # This line takes the text entered and parses it into sentences and words.
+        elif choice == '2':                                                               # This line checks if the choice is equal to 2.
+            return parse_file_input()                                                     # This line calls the parse_file_input function, this function is going to be defined later in the 											  ##code on line 59.
+        else:                                                                             # This line is an else statement, this means that if the choice is not equal to 1 or 2 then the 											  ##code inside the else statement will run.
+            print("Invalid choice. Please enter 1 for direct input or 2 for file input.") # This line prints a message in the console saying "Invalid choice. Please enter 1 for direct 											  ##input or 2 for file input."
+
+# Function to parse input text into sentences and words
+                                                                    # This is the function called parse_text, it is used to parse the text into sentences and words.
+def parse_text(text):                                               # Here we define the function parse_text.
+    sentences = re.split(r'[.!?]\s*', text)                         # This line uses a regular expression to split the text into sentences. This is done by splitting the text at periods, 								    ##exclamation marks, and question marks. We also remove any whitespace after the punctuation.
+                                                                    ### We imported the re library on line 4 to use regular expressions.
+    return [sentence.split() for sentence in sentences if sentence] # This line is going to return a list of words for each sentence in the text. We are splitting the sentences into words.
+
+# Function to handle file input
+                                                                    # This is the function called parse_file_input, it is used to parse the file input. We use this function to read the 								    ##text from a file and parse it into sentences and words. Similar to the parse_text function.
+def parse_file_input():                                             # Here we define the function parse_file_input.
+    file_path = input("Enter the file path: ")                      # This line asks the person running the program to enter the file path.
+    if os.path.exists(file_path):                                   # This line checks if the file path actually exists.
+        with open(file_path, 'r', encoding='utf-8') as file:        # This line opens the file in read mode and assigns it to the variable file. We also specify the encoding as utf-8.
+            return parse_text(file.read())                          # This line reads the file and parses the text into sentences and words using the parse_text function defined on line 							            ##55.
+    else:                                                           # This line is an else statement, this means that if the file path does not exist then the code inside the else 								            ##statement will run.
+        print("File not found. Please ensure the path is correct.") # This line prints a message in the console saying "File not found. Please ensure the path is correct."
+        return []                                                   # This line returns an empty list. This is done because the file was not found and there is no text to parse.
+
+# Function to compare words to a corpus
+                                                                                         # This is the function called compare_to_corpus, it is used to compare the words in the text to a 											 ##corpus of words. The function returns a list of words that are not in the corpus. 
+def compare_to_corpus(words_set, jagged_array):                                          # Here we define the function compare_to_corpus, this function takes two arguments, words_set and jagged_array.
+    not_in_corpus = []                                                                   # This line initializes a list called not_in_corpus. This list is going to store words that are not in the corpus.
+    for sentence in jagged_array:                                                        # This line starts a for loop, this loop is going to run for each sentence in the jagged_array. 
+        not_in_corpus.extend(word for word in sentence if word.lower() not in words_set) # This line extends the not_in_corpus list with words that are not in the words_set. We are also 											 ##converting the words to lowercase before checking.
+    return not_in_corpus                                                                 # This line returns the not_in_corpus list.
+
+# Levenshtein distance calculation
+                                                                            # This is the function called levenshtein_distance, it is used to calculate the Levenshtein distance between two 									    ##strings.The Levenshtein distance is a measure of the similarity between two strings by calculating the minimum 									    ###number of single-character edits (insertions, deletions, or substitutions)required to change one string into 									    ####the other. The lower the Levenshtein distance, the more similar the strings are, this would that a 										    #####Levenshtein distance of 0 indicates that the strings are identical.
+def levenshtein_distance(s1, s2):                                           # Here we define the function levenshtein_distance, this function takes two arguments, s1 and s2 which are the 									    ##strings we are comparing (String 1 and String 2).
+    if len(s1) < len(s2):                                                   # This line checks if the length of string 1 is less than the length of string 2.
+        return levenshtein_distance(s2, s1)                                 # This line calls the levenshtein_distance function with the arguments s2 and s1. This is done to ensure that s2 									    ##is always the longer string.
+    if len(s2) == 0:                                                        # This line checks if the length of string 2 is equal to 0.
+        return len(s1)                                                      # This line returns the length of string 1.
+    previous_row = range(len(s2) + 1)                                       # This line initializes a range object from 0 to the length of string 2 + 1. This is used to store the previous 									    ##row of the matrix. A matrix is used to calculate the Levenshtein distance.
+    for i, c1 in enumerate(s1):                                             # This line starts a for loop, this loop is going to run for each character in string 1. The enumerate function 									    ##is used to get the index and character of each character in the string. The index is stored in i and the 										    ###character is stored in c1.
+        current_row = [i + 1]                                               # This line initializes a list with the value of i + 1. This list is used to store the current row of the 										    ##matrix.
+        for j, c2 in enumerate(s2):                                         # This line starts a for loop, this loop is going to run for each character in string 2. The enumerate function 									    ##is used to get the index and character of each character in the string. The index is stored in j and the 										    ###character is stored in c2.
+            insertions = previous_row[j + 1] + 1                            # This line calculates the number of insertions needed by getting the value from the previous row at index j + 1 									    ##and adding 1. This is done because an insertion is needed. 
+            deletions = current_row[j] + 1                                  # This line calculates the number of deletions needed by getting the value from the current row at index j and 									    ##adding 1. This is done because a deletion is needed. 
+            substitutions = previous_row[j] + (c1 != c2)                    # This line calculates the number of substitutions needed by getting the value from the previous row at index j 									    ##and adding 1 if the characters are not equal. This is done because a substitution is needed.
+            current_row.append(min(insertions, deletions, substitutions))   # This line makes a list of the minimum number of insertions, deletions, and substitutions needed and appends it 									    ##to the current row. 
+        previous_row = current_row                                          # This line sets the previous row to the current row. This is done because we are moving to the next row in the 									    ##matrix. 
+    return previous_row[-1]                                                 # This line returns the last element in the previous row. This is the Levenshtein distance between the two 										    ##strings. 
+
+# Function to generate suggestions for misspelled words
+                                                                                         # This is the function called generate_suggestions, it is used to generate suggestions for	 											 ##misspelled. The function returns a dictionary where the keys are the misspelled words and the 											 ###values are lists of suggested corrections.
+def generate_suggestions(misspelled_words, words_set):                                   # Here we define the function generate_suggestions, this function takes two arguments, misspelled_words and words_set.
+    suggestions = {}                                                                     # This line initializes a dictionary called suggestions. This dictionary is going to store the 											 ##misspelled words and their suggested corrections.
+    for word in misspelled_words:                                                        # This line starts a for loop, this loop is going to run for each word in the misspelled_words 											 ##list.
+        suggestions[word] = [w for w in words_set if levenshtein_distance(word, w) <= 2] # This line assigns the value of the word in the suggestions dictionary
+                                                                                         ##to a list of words from the words_set that have a Levenshtein distance of 2 or less from the 											 ###misspelled word.
+    return suggestions                                                                   # This line returns the suggestions dictionary. This dictionary contains the misspelled words and 											 ##their suggested corrections.
+
+# Function to write suggestions to CSV
+                                                                        # This is the function called write_corrections_to_csv, it is used to write the suggestions to a CSV file. 
+def write_corrections_to_csv(suggestions, file_path='corrections.csv'): # Here we define the function write_corrections_to_csv, this function takes two arguments, suggestions and 									        ##file_path. 
+    with open(file_path, 'w', newline='', encoding='utf-8') as file:    # This is a with statement that opens the file in write mode and assigns it to the variable file. We also specify 									##the encoding as utf-8.
+        writer = csv.writer(file)                                       # This line creates is making a csv writer object, this object is used to write to the file opened in the previous 									##line.
+        writer.writerow(["Misspelled Word", "Suggested Corrections"])   # This line writes the column headers to the CSV file. The column headers are "Misspelled Word" and "Suggested 										##Corrections". 
+        for word, corrections in suggestions.items():                   # This line starts a for loop, this loop is going to run for each word and its suggested corrections in the 										##suggestions dictionary.
+            writer.writerow([word, ", ".join(corrections)])             # Here we write the word and its suggested corrections to the CSV file. We are joining the corrections with a comma 									##and a space. 
+
+# Main function
+                                                            # This is the main function, its purpose is to run the program. This is basically the order in which we want the functions to 							    ##run. 
+def main():                                                 # Here we define the main function.
+    words_set = load_word_list()                            # This line calls the load_word_list function and assigns the result to the words_set variable. We are defining the words_set 							    ##variable here and not outside of main because we only need it in the main function as it is not used elsewhere.
+    if not words_set:                                       # Here we start an if statement, this statement checks if the words_set is empty.
+        print("Failed to load the word list. Exiting...")   # This line prints a message in the console saying "Failed to load the word list. Exiting..." if the words_set is empty.
+        return                                              # This line completes the if statement and returns nothing. This is done because the words_set is empty and we cannot proceed 							    ##without it.
+
+    user_input = get_user_input()             # This line calls the get_user_input function and assigns the result to the user_input variable. 
+    if not user_input:                        # This line starts an if statement, this statement checks if the user_input is empty.
+        print("No text provided. Exiting...") # This line prints a message in the console saying "No text provided. Exiting..." if the user_input is empty.
+        return                                # This line completes the if statement and returns nothing. This is done because the user_input is empty and we cannot proceed without it.
+
+    misspelled_words = compare_to_corpus(words_set, user_input)     # This line calls the compare_to_corpus function with the arguments words_set and user_input. The result is assigned to 								    ##the misspelled_words variable.
+    suggestions = generate_suggestions(misspelled_words, words_set) # This line calls the generate_suggestions function with the arguments misspelled_words and words_set. The result is 								    ##assigned to the suggestions variable.
+    write_corrections_to_csv(suggestions)                           # This line calls the write_corrections_to_csv function with the argument suggestions. This function writes the 									    ##suggestions to a CSV file.
+
+if __name__ == "__main__": # This line checks if the script is being run directly by the Python interpreter. If it is, then the code inside the if statement will run. 
+    main()                 # This line calls the main function. This is done to run the program, after this line the program will run the main function and execute the code inside it.

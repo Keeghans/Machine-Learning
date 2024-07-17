@@ -1,0 +1,118 @@
+              # Import Section this is where you import necessary modules that you want to use in your code.
+import random # This import is called random, it is used to generate random numbers.
+
+
+                                                                                    # This function returns a random description for a given color. 
+def random_description(color):                                                      # This is a function called random_description, it takes one argument called color.
+    descriptions = {                                                                # This is a dictionary called descriptions, it contains key value pairs which are color and a list of descriptions.
+        'red': ['color of apples', 'hue of fire', 'shade of strawberries'],         # This is a key value pair in the dictionary descriptions, this key is red and the value is a list of descriptions.
+        'blue': ['color of the sky', 'hue of the ocean', 'shade of blueberries'],   # This is a key value pair in the dictionary descriptions, this key is blue and the value is a list of descriptions.
+        'green': ['color of grass', 'hue of emeralds', 'shade of leaves'],          # This is a key value pair in the dictionary descriptions, this key is green and the value is a list of descriptions.
+        'yellow': ['color of sun', 'hue of gold', 'shade of lemons'],               # This is a key value pair in the dictionary descriptions, this key is yellow and the value is a list of descriptions.
+        'orange': ['color of sunset', 'hue of oranges', 'shade of pumpkins'],       # This is a key value pair in the dictionary descriptions, this key is orange and the value is a list of descriptions.
+        'purple': ['color of lavender', 'hue of plums', 'shade of grapes'],         # This is a key value pair in the dictionary descriptions, this key is purple and the value is a list of descriptions.
+        'pink': ['color of flamingo', 'hue of roses', 'shade of peaches'],          # This is a key value pair in the dictionary descriptions, this key is pink and the value is a list of descriptions.
+        'black': ['color of night', 'hue of coal', 'shade of onyx']                 # This is a key value pair in the dictionary descriptions, this key is black and the value is a list of descriptions.
+    }                                                                               # This is the end of the dictionary 
+    return random.choice(descriptions[color])                                       # This uses the random module to choose a random description from the list of descriptions for the given color.
+
+                                                # This function evaluates the message and returns a score based on the guess and the actual color. 
+def evaluate_message(guess, actual):            # This is a function called evaluate_message, it takes two arguments called guess and actual, these are the guess and the actual color.
+    if guess is None:                           # This sets up an if statement that checks if the guess is None.
+        return -1                               # If the guess is None then the function returns -1.
+    elif guess == actual:                       # This sets up an elif statement that checks if the guess is equal to the actual color. 
+        return 1                                # If the guess is equal to the actual color then the function returns 1.
+    elif guess.split()[0] == actual.split()[0]: # This sets up an elif statement that checks if the first word of the guess is equal to the first word of the actual color.
+        return 0.5                              # If the first word of the guess is equal to the first word of the actual color then the function returns 0.5.
+    return -1                                   # If none of the above conditions are met then the function returns -1 as the default value.
+
+                                                                                # This function adds noise to the message, this is to simulate the noise that can occur in communication, this is so that the agents can learn to deal with noise.
+def noisy_communication(message):                                               # This is a function called noisy_communication, it takes one argument called message.
+    if random.random() < 0.1:                                                   # This sets up an if statement that checks if a random number between 0 and 1 is less than 0.1.
+        return ' '.join(random.sample(message.split(), len(message.split())))   # If the random number is less than 0.1 then the function returns a shuffled version of the message by splitting the message
+                                                                                ##into a list of words, shuffling the list and then joining the list back into a string.
+    return message                                                              # This returns the message as it is if the random number is not less than 0.1. This is how we simulate noise in communication, this is so that the agents can learn to deal with noise.
+
+                                                                                    # This is the CommunicationAgent class, A class is how you define a new type of object in Python. This class is used to create agents that can communicate with each other. 
+                                                                                    ##Agents are objects that can communicate with each other by sending messages to each other. This class defines the behavior of the agents and how they interact with each other.
+class CommunicationAgent:                                                           # This is where we define the CommunicationAgent class.
+    def __init__(self):                                                             # This is the constructor method, it is called when a new object of the class is created. We call this method to initialize the object.
+        self.vocabulary = {color: random_description(color) for color in [          # This is a dictionary called vocabulary, it contains key value pairs which are color and a random description for that color. 
+                                                                                    ##The description is generated by the random_description function. 
+                                                                                    ###We use self to refer to the object itself, this is how we access the object's attributes and methods inside the class.
+            'red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'black'   # These are the keys in the dictionary, they are the colors that the agent can communicate about. This is a list of colors that the agent can choose from.
+        ]}                                                                          # This is the end of the dictionary
+        self.base_learning_rate = 0.5                                               # This is an attribute of the object, it is the base learning rate of the agent. This is the rate at which the agent learns from interactions with other agents.
+                                                                                    ##by changing this value we can control how fast the agent learns new strategies with a higher value the agent will learn faster and with a lower value the agent will learn slower.
+        self.learning_rate = self.base_learning_rate                                # This sets the base learning rate as the learning rate of the agent. This is the learning rate that the agent will use to learn from interactions with other agents. 
+                                                                                    ##This is the learning rate that the agent will use to learn new strategies from other agents. We set the learning rate to the base learning rate at the start so that
+                                                                                    ### we dont have to change the base learning rate.
+
+                                                            # This function is used to communicate with other agents, it takes a color as an argument and returns a message that describes the color.
+    def communicate(self, color):                           # This is a method called communicate, it takes one argument called color, it has self as the first argument, this is how we access the object's attributes and methods inside the method. 
+        return noisy_communication(self.vocabulary[color])  # This returns a noisy version of the description of the color. This is how the agent communicates with other agents, it sends a message that describes the color.
+
+                                                                        # This function is used to learn from interactions with other agents, it takes another agent and feedback as arguments. This function is used to learn new strategies from other agents.
+    def learn_from_interaction(self, other_agent, feedback):            # This is a method called learn_from_interaction, it takes two arguments called other_agent and feedback, it has self as the first argument,
+                                                                        ## this is how we access the object's attributes and methods inside the method.
+        if feedback < 0:                                                # This sets up an if statement that checks if the feedback is less than 0.
+                                                                        # Increase the learning rate when feedback is negative to explore new strategies 
+            self.learning_rate = min(self.learning_rate + 0.05, 1.0)    # In this line we increase the learning rate by 0.05 when the feedback is negative, this is so that the agent can explore new strategies.
+        else:                                                           # This sets up an else statement that runs if the feedback is not less than 0.
+                                                                        # Decrease the learning rate when feedback is positive to stabilize strategies
+            self.learning_rate = max(self.learning_rate * 0.95, 0.1)    # In this line we decrease the learning rate by 0.05 when the feedback is positive, this is stabalizes the straegies.
+
+        for color in self.vocabulary.keys():                                                # This is a for loop that iterates over the keys in the vocabulary dictionary it iterates over the colors that the agent can communicate about.
+            if random.random() < self.learning_rate:                                        # This line sets up an if statement that checks if a random number between 0 and 1 is less than the learning rate.
+                their_description = other_agent.vocabulary[color]                           # This line gets the description of the color from the other agent's vocabulary dictionary and stores it in their_description. 
+                if feedback > 0 and len(their_description) < len(self.vocabulary[color]):   # This sets up an if statement that checks if the feedback is greater than 0 and the length of their_description is 
+                                                                                            ##less than the length of the description of the color in the agent's vocabulary.
+                    self.vocabulary[color] = their_description                              # If the above condition is met then the description of the color in the agent's vocabulary is set to their_description this is how the agent learns from the other agent.
+
+                                                            # This function is used to guess the color based on the message received from another agent. It takes a message as an argument and returns the color that the agent thinks the message is describing.
+    def guess_color(self, message):                         # This is a method called guess_color, it takes one argument called message, it has self as the first argument, this is how we access the object's attributes and methods inside the method.
+        for color, description in self.vocabulary.items():  # This sets up a for loop that iterates over the items in the vocabulary dictionary, it iterates over the colors and descriptions that the agent can communicate about.
+            if description == message:                      # This sets up an if statement that checks if the description of the color is equal to the message.
+                return color                                # If the description of the color is equal to the message then the function returns the color.
+        return None                                         # If the description of the color is not equal to the message then the function returns None. This is the default value that the function returns if the message is not in the vocabulary.
+
+                                                        # This function is used to simulate the interaction between two agents, it takes two agents and the number of iterations as arguments. It returns the communication efficiency of the agents.
+def simulate_interaction(agent1, agent2, iterations):   # This is a function called simulate_interaction, it takes three arguments called agent1, agent2 and iterations, these are the two agents and the number of iterations that the agents will interact for.
+    colors = list(agent1.vocabulary.keys())             # This line gets the keys of the vocabulary dictionary of agent1 and stores them in colors. This is a list of colors that the agents can communicate about in the simulation.
+    success_count = 0                                   # This sets the object success_count to 0, this is used to keep track of the number of successful interactions between the agents.
+
+    for _ in range(iterations):                                     # This is a for loop that iterates over the range of the number of iterations, this is how many times the agents will interact.
+        color = random.choice(colors)                               # This line chooses a random color from the colors list and stores it in color. This is the color that the agents will communicate about in the interaction.
+        message_from_agent1 = agent1.communicate(color)             # This line gets the message that agent1 sends to agent2 about the color and stores it in message_from_agent1 this is how agent1 communicates with agent2.
+        guess_by_agent2 = agent2.guess_color(message_from_agent1)   # This line gets the color that agent2 thinks the message is describing and stores it in guess_by_agent2. This is how agent2 guesses the color that agent1 is communicating about.
+        feedback = evaluate_message(guess_by_agent2, color)         # This line evaluates the guess of agent2 and the actual color and stores the feedback in feedback. This is how the agents know if the interaction was successful or not.
+        if feedback > 0:                                            # This sets up an if statement that checks if the feedback is greater than 0.
+            success_count += 1                                      # If the feedback is greater than 0 then the success_count is increased by 1. This is how the agents keep track of the number of successful interactions they have.
+        agent1.learn_from_interaction(agent2, feedback)             # This line makes agent1 learn from the interaction with agent2, it uses the feedback to learn new strategies. This is how the agents learn from each other in the simulation.
+        agent2.learn_from_interaction(agent1, feedback)             # This line makes agent2 learn from the interaction with agent1, it uses the feedback to learn new strategies. This is how the agents learn from each other in the simulation.
+
+    return success_count / iterations # This line returns the communication efficiency of the agents, this is the number of successful interactions divided by the number of iterations. This is how we measure how well the agents are communicating 
+                                      ##with each other in the simulation.
+
+                                                    # This function is used to run the simulation, it takes the number of epochs and the number of iterations per epoch as arguments. This function is used to run the simulation for a given number of epochs. 
+                                                    ##An epoch is a complete pass through the dataset Epochs are used to train machine learning models, in this case the agents are the machine learning models, the dataset is the colors that the agents can 
+                                                    ###communicate about and the interactions are the training examples that the agents learn from in the simulation.
+def run_simulation(epochs, iterations_per_epoch):   # This is a function called run_simulation, it takes two arguments called epochs and iterations_per_epoch, these are the number of epochs and the number of iterations per epoch.
+    agent1 = CommunicationAgent()                   # This line creates a new CommunicationAgent object and stores it in agent1. This is the first agent in the simulation.
+    agent2 = CommunicationAgent()                   # This line creates a new CommunicationAgent object and stores it in agent2. This is the second agent in the simulation
+
+    for epoch in range(epochs):                                                 # This is a for loop that iterates over the range of the number of epochs, this is how many epochs the simulation will run for.
+        efficiency = simulate_interaction(agent1, agent2, iterations_per_epoch) # This line simulates the interaction between agent1 and agent2 for the number of iterations per epoch and stores the communication efficiency in efficiency.
+        print(f"Epoch {epoch+1}, Communication efficiency: {efficiency:.2%}")   # This line prints the epoch number and the communication efficiency of the agents. This is how we keep track of how well the agents are communicating with each other in the simulation.
+
+    print("Final vocabulary of Agent 1:", agent1.vocabulary)                    # This is where we print the final vocabulary of agent1, this is the vocabulary of agent1 after the simulation has finished running and the agent has learned new strategies from agent2 in the simulation.
+    print("Final vocabulary of Agent 2:", agent2.vocabulary)                    # This is where we print the final vocabulary of agent2, this is the vocabulary of agent2 after the simulation has finished running and the agent has learned new strategies from agent1 in the simulation.
+
+                            # This is the main function, this is where the program starts running. This is where we call the run_simulation function to run the simulation.
+def main():                 # This is the main function, this is where the program starts running when we run the script its how we control the flow of the program.
+    run_simulation(10, 100) # This line calls the run_simulation function with 10 epochs and 100 iterations per epoch. This is how we run the simulation for a given number of epochs and iterations per epoch. 
+                            # This means that the agents will interact 100 times in each epoch and the simulation will run for 10 epochs.
+
+                            # This line checks if the script is being run as the main program, if it is then the main function is called to run the simulation when the script is run.
+if __name__ == "__main__":  # This line checks if the script is being run as the main progra by checking if the special variable __name__ is equal to the string "__main__".
+    main()                  # This line calls the main function to run the simulation when the script is run.
